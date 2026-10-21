@@ -5,6 +5,7 @@ import { AuthModule } from './auth/auth.module';
 import { JwtAuthGuard } from './common/guards/jwt-auth.guard';
 import { envs } from './config/envs';
 import { HealthController } from './health/health.controller';
+import { RecepcionModule } from './recepcion/recepcion.module';
 
 @Module({
   imports: [
@@ -13,6 +14,7 @@ import { HealthController } from './health/health.controller';
       secret: envs.jwtService,
     }),
     AuthModule,
+    RecepcionModule,
   ],
   controllers: [HealthController],
   providers: [
