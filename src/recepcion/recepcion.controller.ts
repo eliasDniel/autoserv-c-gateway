@@ -7,9 +7,12 @@ import {
   Patch,
   Post,
   Req,
+  UseGuards,
 } from '@nestjs/common';
 import { ClientProxy } from '@nestjs/microservices';
 import { firstValueFrom } from 'rxjs';
+import { Roles } from '../common/decorators/roles.decorator';
+import { RolesGuard } from '../common/guards/roles.guard';
 import { NATS_SERVICE } from '../config/service';
 import {
   CambiarEstadoDto,
@@ -19,6 +22,13 @@ import {
 @Controller()
 export class RecepcionController {
   constructor(@Inject(NATS_SERVICE) private readonly client: ClientProxy) {}
+
+  @Post('datos/reiniciar')
+  @Roles('Administrador')
+  @UseGuards(RolesGuard)
+  reiniciar() {
+    return firstValueFrom(this.client.send('core.datos.reiniciar', {}));
+  }
 
   @Get('recepcion')
   listar() {
