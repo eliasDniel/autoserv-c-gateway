@@ -185,6 +185,10 @@ export class GuardarRecepcionDto {
   @IsString()
   firmaDigital?: string;
 
+  @IsOptional()
+  @IsString()
+  diagnostico?: string;
+
   @IsArray()
   @ValidateNested({ each: true })
   @Type(() => ParteInput)
