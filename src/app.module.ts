@@ -4,6 +4,7 @@ import { JwtModule } from '@nestjs/jwt';
 import { AuthModule } from './auth/auth.module';
 import { JwtAuthGuard } from './common/guards/jwt-auth.guard';
 import { envs } from './config/envs';
+import { DiagnosticoModule } from './diagnostico/diagnostico.module';
 import { HealthController } from './health/health.controller';
 import { RecepcionModule } from './recepcion/recepcion.module';
 
@@ -15,6 +16,7 @@ import { RecepcionModule } from './recepcion/recepcion.module';
     }),
     AuthModule,
     RecepcionModule,
+    DiagnosticoModule,
   ],
   controllers: [HealthController],
   providers: [
