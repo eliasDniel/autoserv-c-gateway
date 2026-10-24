@@ -208,4 +208,8 @@ export class GuardarRecepcionDto {
 export class CambiarEstadoDto {
   @IsIn(['recepcion', 'en_taller', 'terminada'])
   estado: 'recepcion' | 'en_taller' | 'terminada';
+
+  @IsOptional()
+  @IsString()
+  pago?: string;
 }
