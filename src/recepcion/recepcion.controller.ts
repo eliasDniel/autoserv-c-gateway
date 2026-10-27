@@ -11,7 +11,7 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { ClientProxy } from '@nestjs/microservices';
-import { firstValueFrom } from 'rxjs';
+import { catchError, firstValueFrom, of, timeout } from 'rxjs';
 import { Public } from '../common/decorators/public.decorator';
 import { Roles } from '../common/decorators/roles.decorator';
 import { RolesGuard } from '../common/guards/roles.guard';
@@ -22,6 +22,31 @@ import {
   CambiarEstadoDto,
   GuardarRecepcionDto,
 } from './dto/guardar-recepcion.dto';
+
+type InventarioCore = {
+  code: string;
+  name: string;
+  category: string;
+  stock: number;
+  min: number;
+  max: number;
+  price: number;
+  rotation: string;
+  demanda30: number;
+  coberturaDias: number | null;
+  sugerido: number;
+  fuente?: string;
+  serieDiaria?: number[];
+  movimientos?: unknown[];
+};
+
+type ProyeccionDemanda = {
+  codigo: string;
+  demanda30: number;
+  coberturaDias: number | null;
+  sugerido: number;
+  fuente: string;
+};
 
 @Controller()
 export class RecepcionController {
@@ -75,8 +100,42 @@ export class RecepcionController {
   }
 
   @Get('inventario')
-  listarInventario() {
-    return firstValueFrom(this.client.send('core.inventario.listar', {}));
+  async listarInventario() {
+    const items = await firstValueFrom(
+      this.client.send<InventarioCore[]>('core.inventario.listar', {}),
+    );
+
+    const proyecciones = await firstValueFrom(
+      this.client.send<{ proyecciones: ProyeccionDemanda[] }>('ia.demanda.predecir', {
+        items: items.map((item) => ({
+          codigo: item.code,
+          serieDiaria: item.serieDiaria ?? [],
+          stockActual: item.stock,
+          stockMinimo: item.min,
+        })),
+      }).pipe(
+        timeout(4000),
+        catchError(() => of({ proyecciones: [] as ProyeccionDemanda[] })),
+      ),
+    );
+
+    const porCodigo = new Map(
+      (proyecciones.proyecciones ?? []).map((item) => [item.codigo, item]),
+    );
+
+    return items.map(({ serieDiaria: _serie, ...rest }) => {
+      const proyeccion = porCodigo.get(rest.code);
+      if (!proyeccion) {
+        return { ...rest, fuente: rest.fuente ?? 'local' };
+      }
+      return {
+        ...rest,
+        demanda30: proyeccion.demanda30,
+        coberturaDias: proyeccion.coberturaDias,
+        sugerido: proyeccion.sugerido,
+        fuente: proyeccion.fuente ?? 'stub',
+      };
+    });
   }
 
   @Post('inventario/movimiento')
