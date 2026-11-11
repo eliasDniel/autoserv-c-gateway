@@ -1,4 +1,4 @@
-import { Body, Controller, Inject, Post, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Inject, Post, UseGuards } from '@nestjs/common';
 import { ClientProxy } from '@nestjs/microservices';
 import { firstValueFrom } from 'rxjs';
 import { Public } from '../common/decorators/public.decorator';
@@ -16,6 +16,13 @@ export class AuthController {
   @Post('login')
   login(@Body() dto: LoginUserDto) {
     return firstValueFrom(this.client.send('auth.login', dto));
+  }
+
+  @Get('users')
+  @Roles('Administrador')
+  @UseGuards(RolesGuard)
+  listUsers() {
+    return firstValueFrom(this.client.send('auth.user.list', {}));
   }
 
   @Post('users')
