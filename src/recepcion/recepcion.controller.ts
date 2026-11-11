@@ -17,11 +17,19 @@ import { Roles } from '../common/decorators/roles.decorator';
 import { RolesGuard } from '../common/guards/roles.guard';
 import { NATS_SERVICE } from '../config/service';
 import { GuardarCitaDto } from './dto/guardar-cita.dto';
-import { CrearRepuestoDto, MoverInventarioDto } from './dto/inventario.dto';
+import {
+  CrearRepuestoDto,
+  ImportarRepuestosDto,
+  MoverInventarioDto,
+} from './dto/inventario.dto';
 import {
   CambiarEstadoDto,
   GuardarRecepcionDto,
 } from './dto/guardar-recepcion.dto';
+import {
+  GuardarServicioDto,
+  ImportarServiciosDto,
+} from './dto/servicios.dto';
 
 type InventarioCore = {
   code: string;
@@ -148,6 +156,11 @@ export class RecepcionController {
     return firstValueFrom(this.client.send('core.inventario.crear', dto));
   }
 
+  @Post('inventario/importar')
+  importarRepuestos(@Body() dto: ImportarRepuestosDto) {
+    return firstValueFrom(this.client.send('core.inventario.importar', dto));
+  }
+
   @Get('citas')
   listarCitas() {
     return firstValueFrom(this.client.send('core.cita.listar', {}));
@@ -162,5 +175,27 @@ export class RecepcionController {
   @Post('citas/publica')
   guardarCitaPublica(@Body() dto: GuardarCitaDto) {
     return firstValueFrom(this.client.send('core.cita.guardar', { ...dto, id: undefined, estado: 'pendiente' }));
+  }
+
+  @Get('servicios')
+  listarServicios() {
+    return firstValueFrom(this.client.send('core.servicios.listar', {}));
+  }
+
+  @Post('servicios')
+  guardarServicio(@Body() dto: GuardarServicioDto) {
+    return firstValueFrom(this.client.send('core.servicios.guardar', dto));
+  }
+
+  @Post('servicios/importar')
+  importarServicios(@Body() dto: ImportarServiciosDto) {
+    return firstValueFrom(this.client.send('core.servicios.importar', dto));
+  }
+
+  @Delete('servicios/:codigo')
+  @Roles('Administrador')
+  @UseGuards(RolesGuard)
+  eliminarServicio(@Param('codigo') codigo: string) {
+    return firstValueFrom(this.client.send('core.servicios.eliminar', { codigo }));
   }
 }
