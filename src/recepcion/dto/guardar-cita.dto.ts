@@ -42,4 +42,27 @@ export class GuardarCitaDto {
   @IsOptional()
   @IsString()
   estado?: string;
+
+  @IsOptional()
+  @IsString()
+  origen?: string;
+
+  @IsOptional()
+  @IsString()
+  telegramChatId?: string;
+
+  @IsOptional()
+  @Type(() => Number)
+  @IsInt()
+  clienteId?: number;
+
+  @IsOptional()
+  @Type(() => Number)
+  @IsInt()
+  vehiculoId?: number;
+
+  @IsOptional()
+  @Type(() => Number)
+  @IsInt()
+  servicioId?: number;
 }

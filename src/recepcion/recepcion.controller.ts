@@ -7,6 +7,7 @@ import {
   Param,
   Patch,
   Post,
+  Query,
   Req,
   UseGuards,
 } from '@nestjs/common';
@@ -166,15 +167,42 @@ export class RecepcionController {
     return firstValueFrom(this.client.send('core.cita.listar', {}));
   }
 
+  @Get('citas/disponibilidad')
+  horasLibres(@Query('fecha') fecha: string) {
+    return firstValueFrom(this.client.send('core.cita.horasLibres', { fecha }));
+  }
+
   @Post('citas')
   guardarCita(@Body() dto: GuardarCitaDto) {
-    return firstValueFrom(this.client.send('core.cita.guardar', dto));
+    return firstValueFrom(this.client.send('core.cita.guardar', { ...dto, origen: dto.origen ?? 'web' }));
   }
 
   @Public()
   @Post('citas/publica')
   guardarCitaPublica(@Body() dto: GuardarCitaDto) {
-    return firstValueFrom(this.client.send('core.cita.guardar', { ...dto, id: undefined, estado: 'pendiente' }));
+    return firstValueFrom(
+      this.client.send('core.cita.guardar', {
+        ...dto,
+        id: undefined,
+        estado: 'pendiente',
+        origen: 'web',
+      }),
+    );
+  }
+
+  @Post('clientes/:id/telegram-link')
+  async crearVinculoTelegram(@Param('id') id: string) {
+    const result = await firstValueFrom(
+      this.client.send<{ token: string; expira: string; clienteId: number }>(
+        'core.cliente.crearVinculoTelegram',
+        { clienteId: Number(id) },
+      ),
+    );
+    const user = process.env.TELEGRAM_BOT_USERNAME || '';
+    const deepLink = user
+      ? `https://t.me/${user.replace(/^@/, '')}?start=${result.token}`
+      : result.token;
+    return { ...result, deepLink, botUsername: user || null };
   }
 
   @Get('servicios')
