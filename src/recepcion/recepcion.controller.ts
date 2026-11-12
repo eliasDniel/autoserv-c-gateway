@@ -28,6 +28,10 @@ import {
   GuardarRecepcionDto,
 } from './dto/guardar-recepcion.dto';
 import {
+  GuardarClienteDto,
+  GuardarVehiculoDto,
+} from './dto/clientes.dto';
+import {
   GuardarServicioDto,
   ImportarServiciosDto,
 } from './dto/servicios.dto';
@@ -157,6 +161,13 @@ export class RecepcionController {
     return firstValueFrom(this.client.send('core.inventario.crear', dto));
   }
 
+  @Delete('inventario/:codigo')
+  @Roles('Administrador')
+  @UseGuards(RolesGuard)
+  eliminarRepuesto(@Param('codigo') codigo: string) {
+    return firstValueFrom(this.client.send('core.inventario.eliminar', { codigo }));
+  }
+
   @Post('inventario/importar')
   importarRepuestos(@Body() dto: ImportarRepuestosDto) {
     return firstValueFrom(this.client.send('core.inventario.importar', dto));
@@ -188,6 +199,30 @@ export class RecepcionController {
         origen: 'web',
       }),
     );
+  }
+
+  @Post('clientes')
+  guardarCliente(@Body() dto: GuardarClienteDto) {
+    return firstValueFrom(this.client.send('core.cliente.guardar', dto));
+  }
+
+  @Delete('clientes/:id')
+  @Roles('Administrador')
+  @UseGuards(RolesGuard)
+  eliminarCliente(@Param('id') id: string) {
+    return firstValueFrom(this.client.send('core.cliente.eliminar', { id }));
+  }
+
+  @Post('vehiculos')
+  guardarVehiculo(@Body() dto: GuardarVehiculoDto) {
+    return firstValueFrom(this.client.send('core.vehiculo.guardar', dto));
+  }
+
+  @Delete('vehiculos/:id')
+  @Roles('Administrador')
+  @UseGuards(RolesGuard)
+  eliminarVehiculo(@Param('id') id: string) {
+    return firstValueFrom(this.client.send('core.vehiculo.eliminar', { id }));
   }
 
   @Post('clientes/:id/telegram-link')

@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Inject, Post, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Inject, Param, Patch, Post, UseGuards } from '@nestjs/common';
 import { ClientProxy } from '@nestjs/microservices';
 import { firstValueFrom } from 'rxjs';
 import { Public } from '../common/decorators/public.decorator';
@@ -7,6 +7,7 @@ import { RolesGuard } from '../common/guards/roles.guard';
 import { NATS_SERVICE } from '../config/service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { LoginUserDto } from './dto/login.dto';
+import { UpdateUserDto } from './dto/update-user.dto';
 
 @Controller('auth')
 export class AuthController {
@@ -30,5 +31,14 @@ export class AuthController {
   @UseGuards(RolesGuard)
   createUser(@Body() dto: CreateUserDto) {
     return firstValueFrom(this.client.send('auth.user.create', dto));
+  }
+
+  @Patch('users/:id')
+  @Roles('Administrador')
+  @UseGuards(RolesGuard)
+  updateUser(@Param('id') id: string, @Body() dto: UpdateUserDto) {
+    return firstValueFrom(
+      this.client.send('auth.user.update', { id: Number(id), ...dto }),
+    );
   }
 }
